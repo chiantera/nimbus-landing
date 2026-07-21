@@ -1,0 +1,42 @@
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800;900&display=swap');
+
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+:root {
+  --grad: linear-gradient(135deg, #ff6ec4 0%, #7873f5 100%);
+  --grad-warm: linear-gradient(135deg, #ff8177 0%, #ff867a 21%, #ff8c7f 52%, #f99185 78%, #cf556c 100%);
+  --ink: #2d2a3e;
+  --muted: #7a7690;
+  --lilac: #f6f5ff;
+  --purple: #7873f5;
+  --pink: #ff6ec4;
+  --shadow: 0 20px 40px rgba(120, 115, 245, 0.18);
+  --shadow-sm: 0 8px 24px rgba(45, 42, 62, 0.08);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  color: var(--ink);
+  background: #ffffff;
+  line-height: 1.6;
+  -webkit-font-smoothing: antialiased;
+  overflow-x: hidden;
+}
+
+a {
+  text-decoration: none;
+  color: inherit;
+}
+
+img,
+svg {
+  display: block;
+}
