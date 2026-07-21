@@ -22,10 +22,15 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: npm
       - run: npm ci
       - run: npm run build
+        env:
+          # Build with the /nimbus-landing/ base path for project Pages.
+          DEPLOY_TARGET: ghpages
+      # SPA fallback so client-side routes (e.g. /pricing) work on hard refresh.
+      - run: cp dist/index.html dist/404.html
       - uses: actions/upload-pages-artifact@v3
         with:
           path: ./dist
