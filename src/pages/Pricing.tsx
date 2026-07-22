@@ -1,10 +1,40 @@
 import { useState } from 'react'
-import { Link } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { Reveal } from '../lib/ui'
+import { useAuth } from '../lib/auth'
+import { startCheckout } from '../lib/billing'
 import { tiers, faqs } from '../data'
 
 export default function Pricing() {
   const [open, setOpen] = useState<number | null>(0)
+  const [busy, setBusy] = useState<string | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  const { session } = useAuth()
+  const navigate = useNavigate()
+
+  async function onPick(name: string) {
+    setError(null)
+    if (name === 'Enterprise') {
+      window.location.href = 'mailto:sales@nimbus.io?subject=Nimbus%20Enterprise'
+      return
+    }
+    if (name === 'Starter') {
+      navigate(session ? '/dashboard' : '/signup')
+      return
+    }
+    // Pro: must be signed in to check out.
+    if (!session) {
+      navigate('/signup?next=pricing')
+      return
+    }
+    setBusy(name)
+    try {
+      await startCheckout()
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Could not start checkout')
+      setBusy(null)
+    }
+  }
 
   return (
     <>
@@ -41,13 +71,18 @@ export default function Pricing() {
                     <li key={pf}>✓ {pf}</li>
                   ))}
                 </ul>
-                <Link to="/pricing" className={`btn btn-pill btn-block${t.featured ? '' : ' btn-outline'}`}>
-                  {t.cta}
-                </Link>
+                <button
+                  className={`btn btn-pill btn-block${t.featured ? '' : ' btn-outline'}`}
+                  onClick={() => onPick(t.name)}
+                  disabled={busy === t.name}
+                >
+                  {busy === t.name ? 'Starting…' : t.cta}
+                </button>
               </div>
             </Reveal>
           ))}
         </div>
+        {error && <p className="pricing-error">{error}</p>}
       </section>
 
       <section className="section faq-section">

@@ -1,10 +1,13 @@
 import { useEffect, useState } from 'react'
-import { Link, NavLink, useLocation } from 'react-router-dom'
+import { Link, NavLink, useLocation, useNavigate } from 'react-router-dom'
+import { useAuth } from '../lib/auth'
 
 export default function Nav() {
   const [menuOpen, setMenuOpen] = useState(false)
   const [scrolled, setScrolled] = useState(false)
   const { pathname } = useLocation()
+  const navigate = useNavigate()
+  const { session, signOut } = useAuth()
   const isHome = pathname === '/'
 
   useEffect(() => {
@@ -14,11 +17,14 @@ export default function Nav() {
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
 
-  // Close the mobile menu whenever the route changes.
   useEffect(() => setMenuOpen(false), [pathname])
 
-  // Solid on inner pages always; on the home page only once scrolled past the hero.
   const solid = !isHome || scrolled
+
+  async function onSignOut() {
+    await signOut()
+    navigate('/')
+  }
 
   return (
     <nav className={`nav${solid ? ' nav--solid' : ''}`}>
@@ -35,8 +41,17 @@ export default function Nav() {
           <NavLink to="/features">Features</NavLink>
           <NavLink to="/pricing">Pricing</NavLink>
           <NavLink to="/blog">Blog</NavLink>
-          <a href="#login" className="nav-login">Log in</a>
-          <Link to="/pricing" className="btn btn-pill btn-sm">Get started free</Link>
+          {session ? (
+            <>
+              <NavLink to="/dashboard">Dashboard</NavLink>
+              <button className="btn btn-pill btn-sm" onClick={onSignOut}>Sign out</button>
+            </>
+          ) : (
+            <>
+              <Link to="/login" className="nav-login">Log in</Link>
+              <Link to="/signup" className="btn btn-pill btn-sm">Get started free</Link>
+            </>
+          )}
         </div>
       </div>
     </nav>

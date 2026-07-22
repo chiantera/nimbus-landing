@@ -42,6 +42,38 @@ endpoint using your key from a **gitignored `.env`** — the key never ships to 
    …plus your `AI_API_KEY`.
 3. Restart `npm run dev`. The assistant is now live.
 
+## Accounts & billing (Supabase + Stripe)
+
+Auth and subscriptions are real. Supabase handles login; Stripe handles payments;
+Vercel serverless functions in `api/` are the backend (the key never reaches the browser).
+
+- **Supabase project:** `nimbus` (ref `fvjzvayvebhewmpwhlio`, org `sapienza.dev`). The
+  `profiles` table is auto-created per user via a trigger and protected by Row-Level
+  Security. Billing columns are written only by the Stripe webhook (service role).
+- **Client env (safe):** `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`.
+- **Server env (secret — Vercel env vars, never committed):**
+  `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `STRIPE_SECRET_KEY`,
+  `STRIPE_WEBHOOK_SECRET`, `STRIPE_PRICE_PRO`, `APP_URL`.
+
+### Stripe setup
+
+1. Create a Stripe account; in **test mode**, add a Product with a recurring **$19/mo**
+   Price → copy its `price_…` id into `STRIPE_PRICE_PRO`.
+2. Copy your test **secret key** (`sk_test_…`) into `STRIPE_SECRET_KEY`.
+3. Add a webhook endpoint → `https://<your-app>/api/stripe-webhook`, listening for
+   `checkout.session.completed`, `customer.subscription.updated`, `customer.subscription.deleted`.
+   Copy the signing secret (`whsec_…`) into `STRIPE_WEBHOOK_SECRET`.
+4. Locally, forward webhooks with the Stripe CLI: `stripe listen --forward-to localhost:5173/api/stripe-webhook`.
+
+### API routes (Vercel functions in `api/`)
+
+| Route | Purpose |
+|-------|---------|
+| `POST /api/create-checkout-session` | Starts Stripe Checkout for the signed-in user |
+| `POST /api/create-portal-session` | Opens the Stripe billing portal |
+| `POST /api/stripe-webhook` | Verifies the signature, syncs subscription → Supabase |
+| `POST /api/chat` | AI assistant proxy |
+
 ## Deployment
 
 ### Vercel (recommended — serves the site **and** the AI function)
